@@ -64,10 +64,18 @@ router.post("/data",async (req,res)=>{
 
     //console.log(dtemp)
     //console.log(data);
+    let c=-1;
+    for(let i of dtemp.data){
+        c=parseInt(i.ind);
+        //console.log(i.ind);
+    }
     dtemp.data.push({
+        ind:c+1,
+        date:new Date(),
+        tdata:{
         fname:fname,    
         data:data
-    })
+    }})
     
     await dtemp.save();
     res.send("inserted");
@@ -82,7 +90,8 @@ router.post("/getalllists",async (req,res)=>{
     //console.log(typeof x.data)
     const names=[]
     for(let i of x.data){
-        names.push({fname:i.fname,length:i.data.length})//also send creation time
+        //console.log(i);
+        names.push({fname:i.tdata.fname,length:i.tdata.data.length,index:i.ind,date:i.date})//also send creation time
     }
     //console.log(names)
     return res.json(names);}
@@ -97,9 +106,10 @@ router.post("/gettable",async(req,res)=>{
     var ans={}
     //console.log(typeof x.data)
     for(let i of x.data){
-        if(cnt==ind){
+        //console.log(typeof i.ind)
+        if(i.ind===parseInt(ind)){
             //console.log(cnt)
-            ans={...i};
+            ans={...i.tdata};
             //console.log(i)
             break;
         }
@@ -110,8 +120,37 @@ router.post("/gettable",async(req,res)=>{
     return res.send("error");
     }
     
-})
+});
 
+router.post('/delete',async(req,res)=>{
+    const u_id=req.body.data.u_id;
+    const ind=req.body.data.index;
+    //console.log(req.body.data)
+    try{
+        const x= await User.findOneAndUpdate(
+            { _id: u_id },
+            { $pull: { data: { ind: ind } } },
+            { safe: true, multi: false }
+          );
+        console.log(x)
+        // const tdata=x.data;
+        //const temp=[]
+        // for(let i of x.data){
+        //     if(i.ind===parseInt(ind)){
+        //         delete x.data.i;
+        //         //console.log(cnt)
+        //         //ans={...i};
+        //         //console.log(i)
+                
+        //     }
+
+        //     cnt++;
+        // } 
+        
+    }
+    catch(e){console.log(e)}
+    res.send("del")
+})
 
 
 
